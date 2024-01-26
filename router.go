@@ -471,7 +471,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	path := req.URL.Path
 	if r.RawPathRouting {
-		path = req.URL.RawPath
+		path = req.URL.EscapedPath()
 	}
 
 	if root := r.trees[req.Method]; root != nil {
