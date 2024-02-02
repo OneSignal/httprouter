@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"testing"
 )
@@ -180,13 +181,16 @@ func TestRawURL(t *testing.T) {
 
 	w := new(mockResponseWriter)
 
-	urlParamOne := "%2F"
-	urlParamTwo := "%20"
-	rawUrlPath := fmt.Sprintf("/GET/%s/%s", urlParamOne, urlParamTwo)
-	r, _ := http.NewRequest(http.MethodGet, rawUrlPath, nil)
+	rawParamOne := "©my/key😀"
+	rawParamTwo := "﷼my value😎"
+
+	escapedParamOne := url.PathEscape(rawParamOne)
+	escapedParamTwo := url.PathEscape(rawParamTwo)
+	path := fmt.Sprintf("/GET/%s/%s", escapedParamOne, escapedParamTwo)
+	r, _ := http.NewRequest(http.MethodGet, path, nil)
 	router.ServeHTTP(w, r)
 
-	if paramOne != urlParamOne || paramTwo != urlParamTwo {
+	if paramOne != rawParamOne || paramTwo != rawParamTwo {
 		t.Error("raw URL parsing failed")
 	}
 }
