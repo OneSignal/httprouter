@@ -78,7 +78,9 @@ package httprouter
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 )
@@ -476,7 +478,11 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if root := r.trees[req.Method]; root != nil {
 		if handle, ps, tsr := root.getValue(path, r.getParams); handle != nil {
+
 			if ps != nil {
+				if r.RawPathRouting {
+					unescapeParams(ps)
+				}
 				handle(w, req, *ps)
 				r.putParams(ps)
 			} else {
@@ -545,5 +551,17 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		r.NotFound.ServeHTTP(w, req)
 	} else {
 		http.NotFound(w, req)
+	}
+}
+
+func unescapeParams(params *Params) {
+	for i, param := range *params {
+		value := param.Value
+		unescapedValue, err := url.PathUnescape(value)
+		if err != nil {
+			panic(fmt.Sprintf("could not escape param: %s", value))
+		}
+
+		(*params)[i].Value = unescapedValue
 	}
 }
